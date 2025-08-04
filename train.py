@@ -119,7 +119,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
         gt_image = viewpoint_cam.original_image.cuda()
 
         if iteration == debug_from:
-            print_using_variable(iteration, viewpoint_cam, image)
+            print_using_variable(iteration, viewpoint_cam, gaussians, image)
 
         Ll1 = l1_loss(image, gt_image)
         if FUSED_SSIM_AVAILABLE:
@@ -193,42 +193,42 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 print("\n[ITER {}] Saving Checkpoint".format(iteration))
                 torch.save((gaussians.capture(), iteration), scene.model_path + "/chkpnt" + str(iteration) + ".pth")
 
-def print_using_variable(iteration, viewpoint_cam, rendered_image):
+def print_using_variable(iteration, viewpoint_cam, gaussians, rendered_image):
     print("[print_using_variable] Iteration:", iteration)
 
     # print viewpoint_cam and gt_image
     print("[print_using_variable] Viewpoint Camera:", viewpoint_cam.__dict__.keys())
     
+    print("[print_using_variable] Gaussians:", gaussians.__dict__.keys())
+    # print gaussians xyz, features, opacity, scales, rotations shape
+    print("[print_using_variable] Gaussians XYZ shape:", gaussians.get_xyz.shape)
+    print("[print_using_variable] Gaussians Features shape:", gaussians.get_features.shape)
+    print("[print_using_variable] Gaussians Opacity shape:", gaussians.get_opacity.shape)
+    print("[print_using_variable] Gaussians Scales shape:", gaussians.get_scales.shape)
+    print("[print_using_variable] Gaussians Rotations shape:", gaussians.get_rotations.shape)
+
     gt_image = viewpoint_cam.original_image.cpu()
-
     # display gt image
-    import cv2
-    import numpy as np
-
-    gt_image_np = None
-    if gt_image is not None and hasattr(gt_image, 'shape'):
-        print("[print_using_variable] Ground Truth Image Shape:", gt_image.shape)
-        # write image to file
-        gt_image_trans = gt_image.numpy().transpose(1, 2, 0)  # Convert from CHW to HWC format
-        gt_image_np = gt_image_trans[..., [2, 1, 0]] # Convert RGB to BGR for OpenCV
-        gt_image_np = np.ascontiguousarray(gt_image_np)  # Ensure contiguous memory layout
-        gt_image_np = (gt_image_np * 255.0).astype('uint8')  # Convert to uint8 for OpenCV
+    gt_image_np = convert_cpu_image_to_numpy(gt_image)
 
     # display rendered image
+    rendered_image_np = convert_cpu_image_to_numpy(rendered_image.cpu().detach())
 
-    rendered_image_np = None
-    if rendered_image is not None and hasattr(rendered_image, 'shape'):
-        print("[print_using_variable] Rendered Image Shape:", rendered_image.shape)
-
-        # write image to file
-        rendered_image_trans = rendered_image.cpu().detach().numpy().transpose(1, 2, 0)  # Convert from CHW to HWC format
-        rendered_image_np = rendered_image_trans[..., [2, 1, 0]]  # Convert RGB to BGR for OpenCV
-        rendered_image_np = np.ascontiguousarray(rendered_image_np)  # Ensure contiguous memory layout
-        rendered_image_np = (rendered_image_np * 255.0).astype('uint8')  # Convert to uint8 for OpenCV
-
+    import numpy as np
+    import cv2
     if gt_image_np is not None and rendered_image_np is not None:
         combined_image = np.hstack((gt_image_np, rendered_image_np))
         cv2.imwrite("combined_image_{}.png".format(iteration), combined_image)
+
+def convert_cpu_image_to_numpy(cpu_image):
+    import numpy as np
+    if cpu_image is not None and hasattr(cpu_image, 'shape'):
+        image_trans = cpu_image.numpy().transpose(1, 2, 0)  # Convert from CHW to HWC format
+        image_np = image_trans[..., [2, 1, 0]]  # Convert RGB to BGR for OpenCV
+        image_np = np.ascontiguousarray(image_np)  # Ensure contiguous memory layout
+        image_np = (image_np * 255.0).astype('uint8')  # Convert to uint8 for OpenCV
+        return image_np
+    return None
 
 def prepare_output_and_logger(args):    
     if not args.model_path:
