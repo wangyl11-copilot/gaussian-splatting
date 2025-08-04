@@ -111,14 +111,16 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
         render_pkg = render(viewpoint_cam, gaussians, pipe, bg, use_trained_exp=dataset.train_test_exp, separate_sh=SPARSE_ADAM_AVAILABLE)
         image, viewspace_point_tensor, visibility_filter, radii = render_pkg["render"], render_pkg["viewspace_points"], render_pkg["visibility_filter"], render_pkg["radii"]
 
-        print_using_variable(viewpoint_cam, None, image)
-
         if viewpoint_cam.alpha_mask is not None:
             alpha_mask = viewpoint_cam.alpha_mask.cuda()
             image *= alpha_mask
 
         # Loss
         gt_image = viewpoint_cam.original_image.cuda()
+
+        if iteration == debug_from:
+            print_using_variable(iteration, viewpoint_cam, gt_image, image)
+
         Ll1 = l1_loss(image, gt_image)
         if FUSED_SSIM_AVAILABLE:
             ssim_value = fused_ssim(image.unsqueeze(0), gt_image.unsqueeze(0))
@@ -191,7 +193,9 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 print("\n[ITER {}] Saving Checkpoint".format(iteration))
                 torch.save((gaussians.capture(), iteration), scene.model_path + "/chkpnt" + str(iteration) + ".pth")
 
-def print_using_variable(viewpoint_cam, gt_image, rendered_image):
+def print_using_variable(iteration, viewpoint_cam, gt_image, rendered_image):
+    print("[print_using_variable] Iteration:", iteration)
+
     # print viewpoint_cam and gt_image
     print("[print_using_variable] Viewpoint Camera:", viewpoint_cam)
     
