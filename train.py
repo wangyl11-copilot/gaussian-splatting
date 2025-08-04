@@ -203,15 +203,27 @@ def print_using_variable(iteration, viewpoint_cam, rendered_image):
 
     # display gt image
     import cv2
+    import numpy as np
+
     if gt_image is not None and hasattr(gt_image, 'shape'):
         print("[print_using_variable] Ground Truth Image Shape:", gt_image.shape)
         # write image to file
-        cv2.imwrite("gt_image_{}.png".format(iteration), (gt_image.numpy() * 255).astype('uint8').transpose(1, 2, 0))
+        gt_image_trans = gt_image.numpy().transpose(1, 2, 0)  # Convert from CHW to HWC format
+        gt_image_np = gt_image_trans[..., [2, 1, 0]] # Convert RGB to BGR for OpenCV
+        gt_image_np = np.ascontiguousarray(gt_image_np)  # Ensure contiguous memory layout
+
+        cv2.imwrite("gt_image_{}.png".format(iteration), (gt_image_np * 255).astype('uint8'))
 
     # display rendered image
     if rendered_image is not None and hasattr(rendered_image, 'shape'):
         print("[print_using_variable] Rendered Image Shape:", rendered_image.shape)
-        cv2.imwrite("rendered_image_{}.png".format(iteration), (rendered_image.cpu().detach().numpy() * 255).astype('uint8').transpose(1, 2, 0))
+
+        # write image to file
+        rendered_image_trans = rendered_image.cpu().detach().numpy().transpose(1, 2, 0)  # Convert from CHW to HWC format
+        rendered_image_np = rendered_image_trans[..., [2, 1, 0]]  # Convert RGB to BGR for OpenCV
+        rendered_image_np = np.ascontiguousarray(rendered_image_np)  # Ensure contiguous memory layout
+
+        cv2.imwrite("rendered_image_{}.png".format(iteration), (rendered_image_np * 255).astype('uint8'))
 
 def prepare_output_and_logger(args):    
     if not args.model_path:
