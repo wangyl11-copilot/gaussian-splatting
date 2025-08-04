@@ -111,6 +111,8 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
         render_pkg = render(viewpoint_cam, gaussians, pipe, bg, use_trained_exp=dataset.train_test_exp, separate_sh=SPARSE_ADAM_AVAILABLE)
         image, viewspace_point_tensor, visibility_filter, radii = render_pkg["render"], render_pkg["viewspace_points"], render_pkg["visibility_filter"], render_pkg["radii"]
 
+        print_using_variable(viewpoint_cam, None, image)
+
         if viewpoint_cam.alpha_mask is not None:
             alpha_mask = viewpoint_cam.alpha_mask.cuda()
             image *= alpha_mask
@@ -188,6 +190,25 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
             if (iteration in checkpoint_iterations):
                 print("\n[ITER {}] Saving Checkpoint".format(iteration))
                 torch.save((gaussians.capture(), iteration), scene.model_path + "/chkpnt" + str(iteration) + ".pth")
+
+def print_using_variable(viewpoint_cam, gt_image, rendered_image):
+    # print viewpoint_cam and gt_image
+    print("[print_using_variable] Viewpoint Camera:", viewpoint_cam)
+    
+    # display gt image
+    import cv2
+    if gt_image and hasattr(gt_image, 'shape'):
+        print("[print_using_variable] Ground Truth Image Shape:", gt_image.shape)
+        cv2.imshow("Ground Truth Image", gt_image.cpu().numpy())
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+    # display rendered image
+    if rendered_image and hasattr(rendered_image, 'shape'):
+        print("[print_using_variable] Rendered Image Shape:", rendered_image.shape)
+        cv2.imshow("Rendered Image", rendered_image.cpu().numpy())
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
 
 def prepare_output_and_logger(args):    
     if not args.model_path:
