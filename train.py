@@ -204,8 +204,8 @@ def print_using_variable(iteration, viewpoint_cam, gaussians, rendered_image):
     print("[print_using_variable] Gaussians XYZ shape:", gaussians.get_xyz.shape)
     print("[print_using_variable] Gaussians Features shape:", gaussians.get_features.shape)
     print("[print_using_variable] Gaussians Opacity shape:", gaussians.get_opacity.shape)
-    print("[print_using_variable] Gaussians Scales shape:", gaussians.get_scales.shape)
-    print("[print_using_variable] Gaussians Rotations shape:", gaussians.get_rotations.shape)
+    # print("[print_using_variable] Gaussians Scales shape:", gaussians.get_scales.shape)
+    print("[print_using_variable] Gaussians Rotations shape:", gaussians.get_rotation.shape)
 
     gt_image = viewpoint_cam.original_image.cpu()
     # display gt image
