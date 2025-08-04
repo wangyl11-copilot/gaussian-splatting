@@ -119,7 +119,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
         gt_image = viewpoint_cam.original_image.cuda()
 
         if iteration == debug_from:
-            print_using_variable(iteration, viewpoint_cam, gt_image, image)
+            print_using_variable(iteration, viewpoint_cam, image)
 
         Ll1 = l1_loss(image, gt_image)
         if FUSED_SSIM_AVAILABLE:
@@ -193,23 +193,25 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 print("\n[ITER {}] Saving Checkpoint".format(iteration))
                 torch.save((gaussians.capture(), iteration), scene.model_path + "/chkpnt" + str(iteration) + ".pth")
 
-def print_using_variable(iteration, viewpoint_cam, gt_image, rendered_image):
+def print_using_variable(iteration, viewpoint_cam, rendered_image):
     print("[print_using_variable] Iteration:", iteration)
 
     # print viewpoint_cam and gt_image
     print("[print_using_variable] Viewpoint Camera:", viewpoint_cam.__dict__.keys())
     
+    gt_image = viewpoint_cam.original_image.cpu()
+
     # display gt image
     import cv2
     if gt_image is not None and hasattr(gt_image, 'shape'):
         print("[print_using_variable] Ground Truth Image Shape:", gt_image.shape)
         # write image to file
-        cv2.imwrite("gt_image_{}.png".format(iteration), (gt_image.cpu().numpy() * 255).astype('uint8').transpose(1, 2, 0))
+        cv2.imwrite("gt_image_{}.png".format(iteration), (gt_image.numpy() * 255).astype('uint8').transpose(1, 2, 0))
 
     # display rendered image
     if rendered_image is not None and hasattr(rendered_image, 'shape'):
         print("[print_using_variable] Rendered Image Shape:", rendered_image.shape)
-        cv2.imwrite("rendered_image_{}.png".format(iteration), (rendered_image.cpu().numpy() * 255).astype('uint8').transpose(1, 2, 0))
+        cv2.imwrite("rendered_image_{}.png".format(iteration), (rendered_image.cpu().detach().numpy() * 255).astype('uint8').transpose(1, 2, 0))
 
 def prepare_output_and_logger(args):    
     if not args.model_path:
