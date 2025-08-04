@@ -197,22 +197,19 @@ def print_using_variable(iteration, viewpoint_cam, gt_image, rendered_image):
     print("[print_using_variable] Iteration:", iteration)
 
     # print viewpoint_cam and gt_image
-    print("[print_using_variable] Viewpoint Camera:", viewpoint_cam)
+    print("[print_using_variable] Viewpoint Camera:", viewpoint_cam.__dict__.keys())
     
     # display gt image
     import cv2
-    if gt_image and hasattr(gt_image, 'shape'):
+    if gt_image is not None and hasattr(gt_image, 'shape'):
         print("[print_using_variable] Ground Truth Image Shape:", gt_image.shape)
-        cv2.imshow("Ground Truth Image", gt_image.cpu().numpy())
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        # write image to file
+        cv2.imwrite("gt_image_{}.png".format(iteration), (gt_image.cpu().numpy() * 255).astype('uint8').transpose(1, 2, 0))
 
     # display rendered image
-    if rendered_image and hasattr(rendered_image, 'shape'):
+    if rendered_image is not None and hasattr(rendered_image, 'shape'):
         print("[print_using_variable] Rendered Image Shape:", rendered_image.shape)
-        cv2.imshow("Rendered Image", rendered_image.cpu().numpy())
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        cv2.imwrite("rendered_image_{}.png".format(iteration), (rendered_image.cpu().numpy() * 255).astype('uint8').transpose(1, 2, 0))
 
 def prepare_output_and_logger(args):    
     if not args.model_path:
