@@ -25,11 +25,14 @@ def check_gassians_outside_object(gaussians: GaussianModel, viewpoint_cam: Camer
         if 0 <= u < gt_image_np.shape[1] and 0 <= v < gt_image_np.shape[0]:
             if np.all(gt_image_np[v, u] == [0, 0, 0]):
                 gaussians_in_object[i] = False
+            else:
+                gaussians_in_object[i] = True
 
     # print how many gaussians are outside the object, and how many are inside
+    total_gaussians = gaussians.get_xyz.shape[0]
     num_outside = torch.sum(~gaussians_in_object).item()
     num_inside = torch.sum(gaussians_in_object).item()
-    print(f"[check_gassians_outside_object] {num_outside} gaussians are outside the object, {num_inside} gaussians are inside the object.")
+    print(f"[check_gassians_outside_object] total: {total_gaussians}, {num_outside} gaussians are outside the object, {num_inside} gaussians are inside the object.")
 
     return gaussians_in_object
 
