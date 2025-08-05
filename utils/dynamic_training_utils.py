@@ -12,13 +12,13 @@ def check_gassians_outside_object(iteration, xyz, viewpoint_cam: Camera):
     # size is same as gaussians.xyz.shape[0]
     gaussians_outside_object = torch.zeros(xyz.shape[0], dtype=torch.bool)
     if iteration < 3000:
-        return gaussians_outside_object
+        return gaussians_outside_object.to("cuda")
 
     gt_image = viewpoint_cam.original_image.cpu()
     gt_image_np = convert_cpu_image_to_numpy(gt_image)
     if gt_image_np is None:
         print("[Warning] GT image is None, cannot check gaussians outside object.")
-        return gaussians_outside_object
+        return gaussians_outside_object.to("cuda")
 
     points_2d = convert_gassians_to_pixel_coordinates(xyz, viewpoint_cam)
     
