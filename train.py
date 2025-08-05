@@ -121,7 +121,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
 
         if iteration == debug_from:
             dynamic_training_utils.print_using_variable(iteration, viewpoint_cam, gaussians, image)
-            dynamic_training_utils.project_gaussians_to_image(gaussians, viewpoint_cam)
+            # dynamic_training_utils.project_gaussians_to_image(gaussians, viewpoint_cam)
 
         Ll1 = l1_loss(image, gt_image)
         if FUSED_SSIM_AVAILABLE:
@@ -166,7 +166,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 print("\n[ITER {}] Saving Gaussians".format(iteration))
                 scene.save(iteration)
 
-            dynamic_training_utils.check_gassians_outside_object(gaussians, viewpoint_cam)
+            dynamic_training_utils.check_gassians_outside_object(iteration, gaussians, viewpoint_cam)
 
             # Densification
             if iteration < opt.densify_until_iter:

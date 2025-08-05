@@ -5,13 +5,13 @@ import torch
 from scene.cameras import Camera
 from scene import GaussianModel
 
-def check_gassians_outside_object(gaussians: GaussianModel, viewpoint_cam: Camera):
+def check_gassians_outside_object(iteration, gaussians: GaussianModel, viewpoint_cam: Camera):
     """
     Check if any of the gaussians are outside the object by projecting them to the image plane.
     If any gaussian is outside the object, return True.
     """
     # size is same as gaussians.xyz.shape[0]
-    gaussians_in_object = torch.zeros(gaussians.get_xyz.shape[0], dtype=torch.bool)
+    gaussians_in_object = torch.ones(gaussians.get_xyz.shape[0], dtype=torch.bool)
     gt_image = viewpoint_cam.original_image.cpu()
     gt_image_np = convert_cpu_image_to_numpy(gt_image)
     if gt_image_np is None:
@@ -25,14 +25,17 @@ def check_gassians_outside_object(gaussians: GaussianModel, viewpoint_cam: Camer
         if 0 <= u < gt_image_np.shape[1] and 0 <= v < gt_image_np.shape[0]:
             if np.all(gt_image_np[v, u] == [0, 0, 0]):
                 gaussians_in_object[i] = False
-            else:
-                gaussians_in_object[i] = True
 
     # print how many gaussians are outside the object, and how many are inside
     total_gaussians = gaussians.get_xyz.shape[0]
     num_outside = torch.sum(~gaussians_in_object).item()
     num_inside = torch.sum(gaussians_in_object).item()
-    print(f"[check_gassians_outside_object] total: {total_gaussians}, {num_outside} gaussians are outside the object, {num_inside} gaussians are inside the object.")
+    
+    if iteration % 100 == 0: 
+        print(f"[check_gassians_outside_object] iteration: {iteration}, total: {total_gaussians}, {num_outside} gaussians are outside the object, {num_inside} gaussians are inside the object.")
+
+    if num_outside > 4000:
+        project_gaussians_to_image(gaussians, viewpoint_cam)
 
     return gaussians_in_object
 
