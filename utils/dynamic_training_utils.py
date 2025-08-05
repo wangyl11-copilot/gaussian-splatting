@@ -3,7 +3,6 @@ import cv2
 import torch
 
 from scene.cameras import Camera
-from scene.gaussian_model import GaussianModel
 
 def check_gassians_outside_object(iteration, xyz, viewpoint_cam: Camera):
     """
@@ -74,7 +73,7 @@ def convert_gassians_to_pixel_coordinates(xyz, viewpoint_cam: Camera):
     return points_2d.cpu().detach().numpy().astype(np.int32)
 
 
-def print_using_variable(iteration, viewpoint_cam: Camera, gaussians: GaussianModel, rendered_image):
+def print_using_variable(iteration, viewpoint_cam: Camera, gaussians, rendered_image):
     print("[print_using_variable] Iteration:", iteration)
 
     # print viewpoint_cam and gt_image
