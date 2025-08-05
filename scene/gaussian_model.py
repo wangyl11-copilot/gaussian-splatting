@@ -21,6 +21,8 @@ from utils.sh_utils import RGB2SH
 from simple_knn._C import distCUDA2
 from utils.graphics_utils import BasicPointCloud
 from utils.general_utils import strip_symmetric, build_scaling_rotation
+from scene.cameras import Camera
+import utils.dynamic_training_utils as dynamic_training_utils
 
 try:
     from diff_gaussian_rasterization import SparseGaussianAdam
@@ -449,13 +451,15 @@ class GaussianModel:
 
         self.densification_postfix(new_xyz, new_features_dc, new_features_rest, new_opacities, new_scaling, new_rotation, new_tmp_radii)
 
-    def densify_and_prune(self, max_grad, min_opacity, extent, max_screen_size, radii, outside_obj_mask):
+    def densify_and_prune(self, max_grad, min_opacity, extent, max_screen_size, radii, viewpoint_cam: Camera, iteration):
         grads = self.xyz_gradient_accum / self.denom
         grads[grads.isnan()] = 0.0
 
         self.tmp_radii = radii
         self.densify_and_clone(grads, max_grad, extent)
         self.densify_and_split(grads, max_grad, extent)
+
+        outside_obj_mask = dynamic_training_utils.check_gassians_outside_object(iteration, self._xyz, viewpoint_cam)
 
         prune_mask = (self.get_opacity < min_opacity).squeeze()
         if max_screen_size:

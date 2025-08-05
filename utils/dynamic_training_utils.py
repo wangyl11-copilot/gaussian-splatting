@@ -5,13 +5,13 @@ import torch
 from scene.cameras import Camera
 from scene import GaussianModel
 
-def check_gassians_outside_object(iteration, gaussians: GaussianModel, viewpoint_cam: Camera):
+def check_gassians_outside_object(iteration, xyz, viewpoint_cam: Camera):
     """
     Check if any of the gaussians are outside the object by projecting them to the image plane.
     If any gaussian is outside the object, return True.
     """
     # size is same as gaussians.xyz.shape[0]
-    gaussians_outside_object = torch.zeros(gaussians.get_xyz.shape[0], dtype=torch.bool)
+    gaussians_outside_object = torch.zeros(xyz.shape[0], dtype=torch.bool)
     if iteration < 3000:
         return gaussians_outside_object
 
@@ -21,7 +21,7 @@ def check_gassians_outside_object(iteration, gaussians: GaussianModel, viewpoint
         print("[Warning] GT image is None, cannot check gaussians outside object.")
         return gaussians_outside_object
 
-    points_2d = convert_gassians_to_pixel_coordinates(gaussians, viewpoint_cam)
+    points_2d = convert_gassians_to_pixel_coordinates(xyz, viewpoint_cam)
     
     # Check if any point is in the image mask, the mask's rgb is black
     for i, (u, v) in enumerate(points_2d):
@@ -30,7 +30,7 @@ def check_gassians_outside_object(iteration, gaussians: GaussianModel, viewpoint
                 gaussians_outside_object[i] = True
 
     # print how many gaussians are outside the object, and how many are inside
-    total_gaussians = gaussians.get_xyz.shape[0]
+    total_gaussians = xyz.shape[0]
     num_outside = torch.sum(gaussians_outside_object).item()
     num_inside = torch.sum(~gaussians_outside_object).item()
 
@@ -38,18 +38,18 @@ def check_gassians_outside_object(iteration, gaussians: GaussianModel, viewpoint
         print(f"[check_gassians_outside_object] iteration: {iteration}, total: {total_gaussians}, {num_outside} gaussians are outside the object, {num_inside} gaussians are inside the object.")
 
     if num_outside > 4000:
-        project_gaussians_to_image(gaussians, viewpoint_cam)
+        project_gaussians_to_image(xyz, viewpoint_cam)
 
     return gaussians_outside_object
 
-def project_gaussians_to_image(gaussians: GaussianModel, viewpoint_cam: Camera):
+def project_gaussians_to_image(xyz, viewpoint_cam: Camera):
     gt_image = viewpoint_cam.original_image.cpu()
     gt_image_np = convert_cpu_image_to_numpy(gt_image)
     if gt_image_np is None:
         print("[Warning] GT image is None, cannot project gaussians to image.")
         return
 
-    points_2d = convert_gassians_to_pixel_coordinates(gaussians, viewpoint_cam)
+    points_2d = convert_gassians_to_pixel_coordinates(xyz, viewpoint_cam)
 
     for (u, v) in points_2d:
         cv2.circle(gt_image_np, (int(u), int(v)), 1, (0, 255, 0), -1)
@@ -57,12 +57,12 @@ def project_gaussians_to_image(gaussians: GaussianModel, viewpoint_cam: Camera):
         
     return 
 
-def convert_gassians_to_pixel_coordinates(gaussians: GaussianModel, viewpoint_cam: Camera):
+def convert_gassians_to_pixel_coordinates(xyz, viewpoint_cam: Camera):
     camera_r = torch.tensor(viewpoint_cam.R.T, dtype=torch.float32).cpu()
     camera_t = torch.tensor(viewpoint_cam.T, dtype=torch.float32).reshape(3, 1).cpu()
     intrinsic = torch.tensor(viewpoint_cam.K, dtype=torch.float32).cpu()
 
-    gaussians_xyz = gaussians.get_xyz.cpu()
+    gaussians_xyz = xyz.cpu()
     gaussians_xyz = gaussians_xyz.T
 
     xyzs_cam = torch.matmul(camera_r, gaussians_xyz) + camera_t
