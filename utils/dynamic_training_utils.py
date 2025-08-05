@@ -3,7 +3,7 @@ import cv2
 import torch
 
 from scene.cameras import Camera
-from scene import GaussianModel
+from scene.gaussian_model import GaussianModel
 
 def check_gassians_outside_object(iteration, xyz, viewpoint_cam: Camera):
     """
