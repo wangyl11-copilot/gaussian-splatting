@@ -39,7 +39,7 @@ def check_gassians_outside_object(iteration, xyz, viewpoint_cam: Camera):
     if num_outside > 4000:
         project_gaussians_to_image(xyz, viewpoint_cam)
 
-    return gaussians_outside_object
+    return gaussians_outside_object.cuda()
 
 def project_gaussians_to_image(xyz, viewpoint_cam: Camera):
     gt_image = viewpoint_cam.original_image.cpu()
