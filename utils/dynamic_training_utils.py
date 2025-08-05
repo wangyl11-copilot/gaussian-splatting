@@ -21,7 +21,7 @@ def project_gaussians_to_image(gaussians: GaussianModel, viewpoint_cam: Camera):
     points_2d = torch.matmul(xyzs_cam, intrinsic.T)
     points_2d = points_2d[:, :2] / points_2d[:, 2:]
 
-    points_2d = points_2d.numpy().astype(np.int32)
+    points_2d = points_2d.cpu().detach().numpy().astype(np.int32)
 
     if gt_image_np is not None:
         for (u, v) in points_2d:
