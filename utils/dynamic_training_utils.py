@@ -36,8 +36,8 @@ def check_gassians_outside_object(iteration, xyz, viewpoint_cam: Camera):
     if iteration % 100 == 0:
         print(f"[check_gassians_outside_object] iteration: {iteration}, total: {total_gaussians}, {num_outside} gaussians are outside the object, {num_inside} gaussians are inside the object.")
 
-    if num_outside > 4000:
-        project_gaussians_to_image(xyz, viewpoint_cam)
+    # if num_outside > 4000:
+    #     project_gaussians_to_image(xyz, viewpoint_cam)
 
     return gaussians_outside_object.to("cuda")
 
