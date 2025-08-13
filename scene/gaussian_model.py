@@ -464,10 +464,12 @@ class GaussianModel:
         prune_mask = (self.get_opacity < min_opacity).squeeze()
         if max_screen_size:
             big_points_vs = self.max_radii2D > max_screen_size
-            big_points_ws = self.get_scaling.max(dim=1).values > 0.05 * extent
+            big_points_ws = self.get_scaling.max(dim=1).values > 0.1 * extent
             if iteration % 100 == 0:
+                # print max_radii2D
+                print(f"[Densification] Max Radii2D: {self.max_radii2D.max()}, max_screen_size: {max_screen_size}")
                 print(f"[Densification] {torch.sum(big_points_vs)} points have a max radius2D larger than {max_screen_size}")
-                print(f"[Densification] {torch.sum(big_points_ws)} points have a max scaling larger than 0.05 * extent: ({0.05 * extent})")
+                print(f"[Densification] {torch.sum(big_points_ws)} points have a max scaling larger than 0.1 * extent: ({0.1 * extent})")
             prune_mask = torch.logical_or(torch.logical_or(prune_mask, big_points_vs), big_points_ws)
 
         if outside_obj_mask is not None:
