@@ -88,6 +88,8 @@ def print_using_variable(iteration, viewpoint_cam: Camera, gaussians, rendered_i
 
     # print scaling details
     print("[print_using_variable] Gaussians Scaling", gaussians.get_scaling)
+    # print max radii2D
+    print("[print_using_variable] Gaussians Max Radii2D:", gaussians.max_radii2D)
 
     gt_image = viewpoint_cam.original_image.cpu()
     # display gt image
