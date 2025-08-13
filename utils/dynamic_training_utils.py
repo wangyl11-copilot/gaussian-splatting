@@ -86,6 +86,9 @@ def print_using_variable(iteration, viewpoint_cam: Camera, gaussians, rendered_i
     print("[print_using_variable] Gaussians Opacity shape:", gaussians.get_opacity.shape)
     print("[print_using_variable] Gaussians Rotations shape:", gaussians.get_rotation.shape)
 
+    # print scaling details
+    print("[print_using_variable] Gaussians Scaling", gaussians.get_scaling)
+
     gt_image = viewpoint_cam.original_image.cpu()
     # display gt image
     gt_image_np = convert_cpu_image_to_numpy(gt_image)
